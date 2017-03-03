@@ -161,7 +161,7 @@ def create_base_env(vars):
         env.AppendUnique(CXXFLAGS=["-std=c++03"])
     if sys.platform.startswith("linux"):
         env.Append(SHLINKFLAGS="-Wl,-soname,${TARGET.file}.${libversion.split('.')[0]}")
-        env.Append(SHLINKFLAGS="-lstdc++")
+        env.Append(SHLINKFLAGS="-lc++")
     return env
 
 def display_help(env,vars):
