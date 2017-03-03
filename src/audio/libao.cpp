@@ -108,7 +108,13 @@ namespace RHVoice
 
     void libao_playback_stream_impl::open(int sample_rate)
     {
-      ao_sample_format sample_format={16,sample_rate,1,AO_FMT_NATIVE,nullptr};
+      ao_sample_format sample_format; //={16,sample_rate,1,AO_FMT_NATIVE,0};
+      sample_format.bits = 16; /* bits per sample */
+      sample_format.rate = sample_rate; /* samples per second (in a single channel) */
+      sample_format.channels = 1; /* number of audio channels */
+      sample_format.byte_format = AO_FMT_NATIVE; /* Byte ordering in sample, see constants below */
+      sample_format.matrix = NULL;
+  
       if(is_file)
         device_handle=ao_open_file(driver_id,device_name.c_str(),1,&sample_format,0);
       else
