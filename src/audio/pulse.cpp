@@ -57,7 +57,7 @@ namespace RHVoice
 
     void pulse_playback_stream_impl::open(int sample_rate)
     {
-      pa_sample_spec sample_spec={PA_SAMPLE_S16NE,sample_rate,1};
+      pa_sample_spec sample_spec={PA_SAMPLE_S16NE,static_cast<uint32_t>(sample_rate),1};
       pa_buffer_attr attr={default_value,default_value,default_value,default_value,default_value};
       if(buffer_size!=0)
         attr.tlength=static_cast<double>(buffer_size)/1000*sample_rate;
