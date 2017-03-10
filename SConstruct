@@ -38,7 +38,8 @@ def CheckPKGConfig(context):
 
 def CheckPKG(context,name):
     context.Message("Checking for {}... ".format(name))
-    result=context.TryAction("pkg-config --exists '{}'".format(name))[0]
+    result=context.TryAction("pkg-config --libs '{}'".format(name))[0]
+    print(str(result))
     context.Result(result)
     return result
 
@@ -158,7 +159,7 @@ def create_base_env(vars):
         env.AppendUnique(CXXFLAGS=["/EHsc"])
     if "gcc" in env["TOOLS"]:
         env.MergeFlags("-pthread")
-        env.AppendUnique(CXXFLAGS=["-std=c++03"])
+        env.AppendUnique(CXXFLAGS=["-std=c++11"])
     if sys.platform.startswith("linux"):
         env.Append(SHLINKFLAGS="-Wl,-soname,${TARGET.file}.${libversion.split('.')[0]}")
         env.Append(SHLINKFLAGS="-lc++")
@@ -214,7 +215,7 @@ def configure(env):
             env["audio_libs"].add("libao")
         if conf.CheckPKG("portaudio-2.0"):
             env["audio_libs"].add("portaudio")
-#        has_giomm=conf.CheckPKG("giomm-2.4")
+        has_giomm=conf.CheckPKG("giomm-2.4")
     if env["PLATFORM"]=="win32":
         env.AppendUnique(LIBS="kernel32")
     conf.Finish()

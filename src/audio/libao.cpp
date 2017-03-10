@@ -108,7 +108,8 @@ namespace RHVoice
 
     void libao_playback_stream_impl::open(int sample_rate)
     {
-      ao_sample_format sample_format={16,sample_rate,1,AO_FMT_NATIVE,0};
+      ao_sample_format sample_format = {16,sample_rate,1,AO_FMT_NATIVE/*,0*/}; //centos 6 hack for libao
+  
       if(is_file)
         device_handle=ao_open_file(driver_id,device_name.c_str(),1,&sample_format,0);
       else

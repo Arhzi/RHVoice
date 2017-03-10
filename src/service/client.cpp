@@ -20,6 +20,7 @@
 #include <giomm.h>
 #include "common.hpp"
 #include "tclap/CmdLine.h"
+#include <glibmm.h>
 
 namespace
 {
