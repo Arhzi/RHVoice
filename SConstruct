@@ -46,7 +46,7 @@ def CheckPKG(context,name):
 def CheckVS(context):
     context.Message("Checking for Visual Studio ... ")
     result=0
-    for version in ("14.0","12.0"):
+    for version in ("15.0","12.0"):
         try:
             with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,r"SOFTWARE\Microsoft\VisualStudio\{}\Setup\VC".format(version),_winreg.KEY_READ|_winreg.KEY_WOW64_32KEY) as key:
                 context.env["VCDir"]=_winreg.QueryValueEx(key,"ProductDir")[0]
