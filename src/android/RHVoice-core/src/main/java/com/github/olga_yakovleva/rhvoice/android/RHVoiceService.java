@@ -60,18 +60,63 @@ public final class RHVoiceService extends TextToSpeechService
 }
         };
 
+    private static interface SettingValueTranslator
+    {
+        public Object load(SharedPreferences prefs,String key);
+        public String translate(Object value);
+}
+
+    private static final SettingValueTranslator prosodySettingValueTranslator=new SettingValueTranslator()
+        {
+            public Object load(SharedPreferences prefs,String key)
+            {
+                return prefs.getString(key,"100");
+}
+
+            public String translate(Object value)
+            {
+                try
+                    {
+                        int n=Integer.parseInt((String)value);
+                        float f=n/100.0f;
+                        return String.valueOf(f);
+}
+                catch(NumberFormatException e)
+                    {
+                        return "1";
+}
+}
+        };
+
+    private static class MappedSetting
+    {
+        public final String prefKey;
+        public Object prefValue;
+        public final String nativeKey;
+        public final SettingValueTranslator valueTranslator;
+
+        public MappedSetting(String prefKey,String nativeKey,SettingValueTranslator valueTranslator)
+        {
+            this.prefKey=prefKey;
+            this.nativeKey=nativeKey;
+            this.valueTranslator=valueTranslator;
+}
+}
+
     private static class Tts
     {
         public TTSEngine engine=null;
         public List<AndroidVoiceInfo> voices;
         public Set<String> languages;
         public Map<String,AndroidVoiceInfo> voiceIndex;
+        public List<MappedSetting> mappedSettings;
 
         public Tts()
         {
             voices=new ArrayList<AndroidVoiceInfo>();
             languages=new HashSet<String>();
             voiceIndex=new HashMap<String,AndroidVoiceInfo>();
+            mappedSettings=new ArrayList<MappedSetting>();
 }
 
         public Tts(Tts other,boolean passEngine)
@@ -79,6 +124,7 @@ public final class RHVoiceService extends TextToSpeechService
             this.voices=other.voices;
             this.languages=other.languages;
             this.voiceIndex=other.voiceIndex;
+            this.mappedSettings=other.mappedSettings;
             if(!passEngine)
                 return;
             this.engine=other.engine;
@@ -115,6 +161,8 @@ public final class RHVoiceService extends TextToSpeechService
                 if(tts==null)
                     return null;
                 if(tts.engine==null)
+                    return null;
+                if(tts.voices.isEmpty())
                     return null;
                 Tts result=new Tts(tts,true);
                 return result;
@@ -177,8 +225,8 @@ public final class RHVoiceService extends TextToSpeechService
 
     static private class Candidate
     {
-        public final AndroidVoiceInfo voice;
-        public final int score;
+        public AndroidVoiceInfo voice;
+        public int score;
 
         public Candidate()
         {
@@ -249,20 +297,25 @@ public final class RHVoiceService extends TextToSpeechService
                 if(voice!=null)
                     return new Candidate(voice,language,country,"");
 }
-        LanguageSettings settings=null;
-        if(languageSettings!=null)
-            settings=languageSettings.get(language);
         Candidate best=new Candidate();
-        Candidate bestPreferred=new Candidate();
         for(AndroidVoiceInfo voice: tts.voices)
             {
                 Candidate candidate=new Candidate(voice,language,country,variant);
-                if(candidate.score>best.score)
+                if(candidate.score>best.score||best.voice==null)
                     best=candidate;
-                if((settings!=null)&&settings.voice.equals(voice))
-                    bestPreferred=candidate;
             }
-        return bestPreferred.score>=best.score?bestPreferred:best;
+        if(best.score==3)
+            return best;
+        if(best.voice==null)
+            best.voice=tts.voices.get(0);
+        LanguageSettings settings=null;
+        if(languageSettings!=null)
+            settings=languageSettings.get(best.voice.getLanguage());
+        if(settings==null)
+            return best;
+        if(settings.voice!=null)
+            best.voice=settings.voice;
+        return best;
     }
 
     private void initialize()
@@ -308,6 +361,11 @@ public final class RHVoiceService extends TextToSpeechService
                 tts.voiceIndex.put(nextVoice.getName(),nextVoice);
                 tts.languages.add(engineVoice.getLanguage().getAlpha3Code());
             }
+        for(String lang: tts.languages)
+            {
+                tts.mappedSettings.add(new MappedSetting("language."+lang+".volume","languages."+lang+".default_volume",prosodySettingValueTranslator));
+                tts.mappedSettings.add(new MappedSetting("language."+lang+".rate","languages."+lang+".default_rate",prosodySettingValueTranslator));
+}
         ttsManager.reset(tts);
     }
 
@@ -388,6 +446,22 @@ public final class RHVoiceService extends TextToSpeechService
         speaking=false;
     }
 
+    private void applyMappedSettings(Tts tts)
+    {
+        SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(this);
+        Object oldPrefValue;
+        String nativeValue;
+        for(MappedSetting setting: tts.mappedSettings)
+            {
+                oldPrefValue=setting.prefValue;
+                setting.prefValue=setting.valueTranslator.load(prefs,setting.prefKey);
+                if(oldPrefValue!=null&&oldPrefValue.equals(setting.prefValue))
+                    continue;
+                nativeValue=setting.valueTranslator.translate(setting.prefValue);
+                tts.engine.configure(setting.nativeKey,nativeValue);
+}
+}
+
     @Override
     protected void onSynthesizeText(SynthesisRequest request,SynthesisCallback callback)
     {
@@ -445,6 +519,7 @@ public final class RHVoiceService extends TextToSpeechService
                     Log.v(TAG,"pitch="+pitch);
                 if(BuildConfig.DEBUG)
                     Log.v(TAG,"Profile: "+profileSpec);
+                applyMappedSettings(tts);
                 final SynthesisParameters params=new SynthesisParameters();
                 params.setVoiceProfile(profileSpec);
                 params.setRate(((double)rate)/100.0);

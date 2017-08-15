@@ -1,4 +1,4 @@
-/* Copyright (C) 2012  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2012, 2016  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
@@ -29,8 +29,8 @@ namespace RHVoice
   class hts_feature_undefined: public lookup_error
   {
   public:
-    hts_feature_undefined():
-      lookup_error("This hts feature has not been defined")
+    hts_feature_undefined(const std::string& name):
+      lookup_error("This hts feature has not been defined: "+name)
     {
     }
   };
@@ -45,6 +45,7 @@ namespace RHVoice
     }
 
     void define_feature(const smart_ptr<feature_function>& f);
+    void define_extra_phonetic_feature(const std::string& name);
     std::string eval_segment_label(const item& seg) const;
 
   private:
