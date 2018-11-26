@@ -1,8 +1,8 @@
-/* Copyright (C) 2012, 2014  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2012, 2014, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -15,20 +15,35 @@
 
 #include "core/params.hpp"
 
+namespace
+{
+  const double MAX_MAX_VOLUME=4;
+  const double MAX_MAX_RATE=5;
+  const double NO_MIN_SONIC_RATE=MAX_MAX_RATE+1;
+}
+
+#ifndef MAX_VOLUME
+#define MAX_VOLUME 2
+#endif
+
+#ifndef MIN_SONIC_RATE
+#define MIN_SONIC_RATE 1
+#endif
+
 namespace RHVoice
 {
   voice_params::voice_params():
-    default_rate("default_rate",1,0.2,5),
+    default_rate("default_rate",1,0.2,MAX_MAX_RATE),
     min_rate("min_rate",0.5,0.2,1),
-    max_rate("max_rate",2,1,5),
+    max_rate("max_rate",2,1,MAX_MAX_RATE),
     default_pitch("default_pitch",1,0.5,2),
     min_pitch("min_pitch",0.5,0.5,1),
     max_pitch("max_pitch",2,1,2),
-    default_volume("default_volume",1,0.25,2),
+    default_volume("default_volume",1,0.25,MAX_MAX_VOLUME),
     min_volume("min_volume",0.25,0.25,1),
-    max_volume("max_volume",2,1,2),
+    max_volume("max_volume",MAX_VOLUME,1,MAX_MAX_VOLUME),
     cap_pitch_factor("cap_pitch_factor",1.3,0.5,2),
-    min_sonic_rate("min_sonic_rate",2.5,0.2,5)
+    min_sonic_rate("min_sonic_rate",MIN_SONIC_RATE,0.2,NO_MIN_SONIC_RATE)
   {
   }
 

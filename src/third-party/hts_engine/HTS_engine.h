@@ -56,6 +56,8 @@
 HTS_ENGINE_H_START;
 
 #include <stdio.h>
+#include "core/bpf.h"
+#include "core/question_matcher.h"
 
 /* common ---------------------------------------------------------- */
 
@@ -169,6 +171,7 @@ typedef struct _HTS_LabelString {
    char *name;                  /* label string */
    double start;                /* start frame specified in the given label */
    double end;                  /* end frame specified in the given label */
+  RHVoice_parsed_label_string parsed;
 } HTS_LabelString;
 
 /* HTS_Label: list of label strings */
@@ -299,6 +302,7 @@ typedef struct _HTS_Engine {
    HTS_SStreamSet sss;          /* set of state streams */
    HTS_PStreamSet pss;          /* set of PDF streams */
    HTS_GStreamSet gss;          /* set of generated parameter streams */
+  BPF bpf;
 } HTS_Engine;
 
 /* engine method --------------------------------------------------- */

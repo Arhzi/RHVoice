@@ -1,4 +1,4 @@
-# Copyright (C) 2015  Olga Yakovleva <yakovleva.o.v@gmail.com>
+# Copyright (C) 2015, 2017  Olga Yakovleva <yakovleva.o.v@gmail.com>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ word Wav_output_file recording.wav
 word Raw_output_file recording.raw
 integer Sample_rate 16000
 boolean Invert 0
+integer Silence_threshold -40
 endform
 min_sil_dur=0.2
 Read from file... 'input_file$'
@@ -50,7 +51,7 @@ start_of_sound=Get time from sample number... first_sample
 end_of_sound=Get time from sample number... last_sample
 snd=Extract part... start_of_sound end_of_sound rectangular 1 no
 endif
-To TextGrid (silences)... 100 0 -40 min_sil_dur 0.05 silent sounding
+To TextGrid (silences)... 100 0 silence_threshold min_sil_dur 0.05 silent sounding
 num_intervals=Get number of intervals... 1
 start=0
 label$=Get label of interval... 1 1
@@ -73,19 +74,18 @@ speech=Subtract mean
 if sample_rate!=src_sample_rate
 Resample: sample_rate, 70
 endif
-Scale intensity... 70
 peak=Get absolute extremum... 0 0 None
 if peak>0.99
 Scale peak... 0.99
 endif
-Save as raw 16-bit little-endian file... 'raw_output_file$'
+Save as raw 32-bit little-endian file... 'raw_output_file$'
 if sample_rate!=16000
 select speech
 Resample: 16000, 70
+endif
 Scale intensity... 70
 peak=Get absolute extremum... 0 0 None
 if peak>0.99
 Scale peak... 0.99
-endif
 endif
 Save as WAV file... 'wav_output_file$'

@@ -1,8 +1,8 @@
-/* Copyright (C) 2012  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2012, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -13,7 +13,10 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+#define _POSIX_C_SOURCE 1
 #include <iostream>
+#include <time.h>
+#include <string.h>
 #include "io.hpp"
 
 namespace RHVoice
@@ -45,5 +48,17 @@ namespace RHVoice
       basic_message<log_message>(std::clog,false)
     {
     }
+
+    void logger::log_message::start()
+    {
+      time_t t=time(0);
+      char s[32];
+      if(ctime_r(&t,s)==0)
+        return;
+      char* p=strchr(s,'\n');
+      if(p!=0)
+        *p=' ';
+      stream <<s << ' ';
+}
   }
 }

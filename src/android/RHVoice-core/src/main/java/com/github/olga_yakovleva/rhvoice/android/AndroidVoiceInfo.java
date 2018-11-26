@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -57,13 +57,13 @@ public final class AndroidVoiceInfo
     public int getSupportLevel(String language,String country,String variant)
     {
         int result=0;
-        if((language!=null)&&language.equalsIgnoreCase(getLanguage()))
+        if(TextUtils.isEmpty(language)||language.equalsIgnoreCase(getLanguage()))
             {
                 ++result;
-                if((country!=null)&&country.equalsIgnoreCase(getCountry()))
+                if(TextUtils.isEmpty(country)||country.equalsIgnoreCase(getCountry()))
                     {
                         ++result;
-                        if((variant!=null)&&variant.equalsIgnoreCase(getVariant()))
+                        if(TextUtils.isEmpty(variant)||variant.equalsIgnoreCase(getVariant()))
                             ++result;
                     }
             }

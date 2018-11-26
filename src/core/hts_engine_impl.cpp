@@ -1,8 +1,8 @@
-/* Copyright (C) 2013, 2014  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2013, 2014, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -16,12 +16,15 @@
 #include "core/str.hpp"
 #include "core/path.hpp"
 #include "core/config.hpp"
+#include "core/voice.hpp"
 #include "core/hts_engine_impl.hpp"
 
 namespace RHVoice
 {
-  hts_engine_impl::hts_engine_impl(const std::string& impl_name,const std::string& voice_path):
-    data_path(voice_path),
+  hts_engine_impl::hts_engine_impl(const std::string& impl_name,const voice_info& info_):
+    info(info_),
+    data_path(info_.get_data_path()),
+    quality(quality_none),
     beta("beta",0.4,-0.8,0.8),
     gain("gain",1.0,0.5,2.0),
     input(0),
@@ -29,9 +32,6 @@ namespace RHVoice
     rate(1.0),
     name(impl_name)
   {
-    config cfg1;
-    cfg1.register_setting(sample_rate);
-    cfg1.load(path::join(data_path,"voice.info"));
     config cfg2;
     cfg2.register_setting(beta);
     cfg2.register_setting(gain);
@@ -57,18 +57,16 @@ namespace RHVoice
 
   void hts_engine_impl::load_configs()
   {
-    config cfg1;
-    cfg1.register_setting(sample_rate);
-    cfg1.load(path::join(data_path,"voice.info"));
     config cfg2;
     cfg2.register_setting(beta);
     cfg2.register_setting(gain);
     cfg2.load(path::join(data_path,"voice.params"));
   }
 
-  hts_engine_impl::pointer hts_engine_impl::create() const
+  hts_engine_impl::pointer hts_engine_impl::create(quality_t q) const
   {
     pointer p=do_create();
+    p->set_quality(q);
     p->load_configs();
     p->do_initialize();
     return p;
@@ -81,7 +79,7 @@ namespace RHVoice
         do_stop();
         return;
       }
-    double s=(sample/32768.0)*gain;
+    double s=(sample/32768.0);
     try
       {
         output->process(&s,1);
@@ -93,4 +91,26 @@ namespace RHVoice
     if(output->is_stopped())
       do_stop();
   }
+
+  sample_rate_t hts_engine_impl::get_sample_rate_for_quality(quality_t q) const
+  {
+    if(info.get_format()==3)
+      return sample_rate_24k;
+    switch(q)
+      {
+      case quality_min:
+        return sample_rate_16k;
+      default:
+        return sample_rate_24k;
+}
+}
+
+  void hts_engine_impl::set_quality(quality_t q)
+  {
+    quality=q;
+    if(info.get_format()==3)
+      model_path=data_path;
+    else
+      model_path=path::join(data_path,str::to_string(get_sample_rate_for_quality(q)));
+}
 }

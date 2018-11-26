@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name" translatable="false">RHVoice</string>
-    <string name="rhvoice_settings">RHVoice settings</string>
-    <string name="languages_and_voices_title">Languages and voices</string>
+<resources
+    xmlns:tools="http://schemas.android.com/tools">
     <string name="default_voice_title">Default voice</string>
     <string name="default_voice_dialog_title">Select a voice</string>
-    <string name="detect_language_title">Automatic language switching</string>
-    <string name="voice_data">Voice data</string>
-    <string name="voice_data_installed">Voice data is installed</string>
-    <string name="voice_data_not_installed">Voice data is not
-    installed</string>
+    <string name="detect_language_title">Language detection</string>
+    <string name="detect_language_desc">Automatic language switching</string>
     <string name="speech_volume">Speech volume</string>
     <string name="speech_rate">Speech rate</string>
+    <string name="pseudo_english_title">English words</string>
+    <string name="pseudo_english_desc">Try to read English words correctly</string>
+    <string name="settings">Settings</string>
+    <string name="wifi_only_title">Wi-Fi only</string>
+    <string name="wifi_only_desc">Download voices only on Wi-Fi</string>
+    <string name="speech_quality">Speech quality</string>
+    <string-array name="quality_labels">
+      <item>Best possible performance</item>
+      <item>Standard quality</item>
+      <item>Best possible quality</item>
+    </string-array>
+    <string name="languages">Languages</string>
+    <string name="voice_remove_question">Uninstall this voice</string>
+    <string name="install">Install</string>
+    <string name="uninstall">Uninstall</string>
 </resources>

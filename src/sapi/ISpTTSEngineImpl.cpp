@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -79,7 +79,7 @@ namespace RHVoice
         return E_OUTOFMEMORY;
       pwfex->wFormatTag=0x0001;
       pwfex->nChannels=1;
-      pwfex->nSamplesPerSec=24000;
+      pwfex->nSamplesPerSec=((get_engine()->quality==quality_min)?16000:24000);
       pwfex->wBitsPerSample=16;
       pwfex->nBlockAlign=pwfex->nChannels*pwfex->wBitsPerSample/8;
       pwfex->nAvgBytesPerSec=pwfex->nSamplesPerSec*pwfex->nBlockAlign;

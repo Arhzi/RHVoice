@@ -1,8 +1,8 @@
-/* Copyright (C) 2012, 2013  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2012, 2013, 2017  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -22,6 +22,7 @@
 #include "core/language.hpp"
 #include "core/voice.hpp"
 #include "core/tone.hpp"
+#include "core/limiter.hpp"
 #include "core/hts_engine_call.hpp"
 
 namespace RHVoice
@@ -278,7 +279,7 @@ namespace RHVoice
     utt(u),
     player(player_),
     engine_pool(pool),
-    engine_impl(pool.acquire(utt.get_hts_engine_impl()))
+    engine_impl(pool.acquire(utt.get_quality()))
   {
   }
 
@@ -362,6 +363,8 @@ namespace RHVoice
 
   void hts_engine_call::set_output()
   {
+    if(!player.configure(engine_impl->get_sample_rate()))
+      throw client_error("Cannot configure player");
     output.set_client(player);
     output.set_sample_rate(engine_impl->get_sample_rate());
     if(input.ebegin()!=input.eend())
@@ -389,9 +392,14 @@ namespace RHVoice
                 output.append(rc);
               }
           }
-        double volume=input.lbegin()->get_volume();
+        double volume=input.lbegin()->get_volume()*engine_impl->get_gain();
         if(volume!=1)
           {
+            if(volume>1)
+              {
+                limiter* lm=new limiter(volume);
+                output.append(lm);
+              }
             volume_controller* vc=new volume_controller(volume);
             output.append(vc);
           }

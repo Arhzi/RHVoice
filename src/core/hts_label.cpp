@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -20,8 +20,12 @@ namespace RHVoice
 {
   double hts_label::calculate_speech_param(double absolute_change,double relative_change,double default_value,double min_value,double max_value) const
   {
-    if(!((min_value<=default_value)&&(default_value<=max_value)))
+    if(!(min_value<=max_value))
       return 1;
+    if(default_value>max_value)
+      default_value=max_value;
+    else if(default_value<min_value)
+      default_value=min_value;
     double result=default_value;
     if(absolute_change>0)
       {

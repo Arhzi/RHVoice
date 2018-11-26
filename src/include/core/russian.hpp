@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -46,10 +46,12 @@ namespace RHVoice
       return true;
     }
 
-    bool_property use_pseudo_english;
+    bool supports_pseudo_english() const
+    {
+      return true;
+    }
 
   private:
-    void do_register_settings(config& cfg,const std::string& prefix);
     smart_ptr<language> create_instance() const;
   };
 
@@ -64,18 +66,15 @@ namespace RHVoice
     }
 
     std::vector<std::string> get_word_transcription(const item& word) const;
-    void decode_as_word(item& token,const std::string& token_name) const;
-    void decode_as_letter_sequence(item& token,const std::string& token_name) const;
 
   private:
+    bool decode_as_russian_word(item& token,const std::string& token_name) const;
+    void decode_as_word(item& token,const std::string& token_name) const;
+
     void mark_clitics(utterance& u) const;
     void reduce_vowels(utterance& u) const;
     void do_final_devoicing_and_voicing_assimilation(utterance& u) const;
     void rename_unstressed_vowels(utterance& u) const;
-
-    bool decode_as_russian_word(item& token,const std::string& token_name) const;
-    bool decode_as_english_word(item& token,const std::string& token_name) const;
-    bool decode_as_known_character(item& token,const std::string& token_name) const;
 
     bool transcribe_letter_sequence(const item& word,std::vector<std::string>& transcription) const;
     bool transcribe_word_with_stress_marks(const item& word,std::vector<std::string>& transcription) const;
@@ -86,7 +85,6 @@ namespace RHVoice
     bool transcribe_unknown_word(const item& word,std::vector<std::string>& transcription) const;
     bool transcribe_word_from_rulex(const item& word,std::vector<std::string>& transcription) const;
 
-    void assign_pronunciation(item& word) const;
     void post_lex(utterance& u) const;
 
     const russian_info& info;
@@ -98,7 +96,6 @@ namespace RHVoice
     const fst dict_fst;
     const fst stress_fst;
     const rules<uint8_t> stress_rules;
-    const fst english_phone_mapping;
     std::auto_ptr<fst> rulex_dict_fst,rulex_rules_fst;
   };
 }

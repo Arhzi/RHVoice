@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -24,7 +24,7 @@
 #include "language.hpp"
 #include "voice.hpp"
 #include "voice_profile.hpp"
-#include "hts_engine_setting.hpp"
+#include "quality_setting.hpp"
 #include "event_logger.hpp"
 
 namespace RHVoice
@@ -141,7 +141,7 @@ namespace RHVoice
     text_params text_settings;
     verbosity_params verbosity_settings;
     bool_property prefer_primary_language;
-    hts_engine_setting hts_engine;
+    quality_setting quality;
   };
 }
 #endif

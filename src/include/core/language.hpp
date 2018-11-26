@@ -1,8 +1,8 @@
-/* Copyright (C) 2012, 2013, 2014  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2012, 2013, 2014, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -20,6 +20,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <memory>
 #include "params.hpp"
 #include "exception.hpp"
 #include "smart_ptr.hpp"
@@ -174,7 +175,6 @@ namespace RHVoice
     virtual void decode_as_word(item& token,const std::string& name) const;
     virtual void decode_as_letter_sequence(item& token,const std::string& name) const;
 
-
     virtual std::vector<std::string> get_word_transcription(const item& word) const=0;
 
     template<typename forward_iterator,typename output_iterator>
@@ -224,6 +224,8 @@ namespace RHVoice
 
     void indicate_case_if_necessary(item& token) const;
     break_strength get_word_break(const item& word) const;
+    bool decode_as_english(item& tok) const;
+    std::vector<std::string> get_english_word_transcription(const item& word) const;
 
     std::map<std::string,smart_ptr<feature_function> > feature_functions;
     const phoneme_set phonemes;
@@ -236,6 +238,7 @@ namespace RHVoice
     const fst syl_fst;
     std::vector<std::string> msg_cap_letter,msg_char_code;
     std::map<utf8::uint32_t,std::string> whitespace_symbols;
+    std::auto_ptr<fst> english_phone_mapping_fst;
     userdict::dict udict;
 
   protected:
@@ -262,6 +265,7 @@ namespace RHVoice
   public:
     voice_params voice_settings;
     text_params text_settings;
+    bool_property use_pseudo_english;
 
     void register_settings(config& cfg);
 
@@ -273,6 +277,11 @@ namespace RHVoice
     bool is_letter(utf8::uint32_t cp) const
     {
       return (letters.find(cp)!=letters.end());
+    }
+
+    bool is_sign(utf8::uint32_t cp) const
+    {
+      return (signs.find(cp)!=signs.end());
     }
 
     bool has_common_letters(const language_info& other) const
@@ -344,12 +353,17 @@ namespace RHVoice
       return false;
     }
 
+    virtual bool supports_pseudo_english() const
+    {
+      return false;
+    }
+
   protected:
     virtual void do_register_settings(config& cfg,const std::string& prefix);
 
   private:
     std::string alpha2_code,alpha3_code;
-    std::set<utf8::uint32_t> letters,vowel_letters;
+    std::set<utf8::uint32_t> letters,vowel_letters,signs;
     bool_property enabled;
 
   protected:
@@ -369,6 +383,11 @@ namespace RHVoice
     void register_vowel_letter(utf8::uint32_t cp)
     {
       vowel_letters.insert(cp);
+    }
+
+    void register_sign(utf8::uint32_t cp)
+    {
+      signs.insert(cp);
     }
 
   public:

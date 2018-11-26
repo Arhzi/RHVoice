@@ -1,8 +1,8 @@
-/* Copyright (C) 2012  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2012, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -94,6 +94,36 @@ namespace RHVoice
             }
           logger::log(5,"Writing ",data.size()," samples to the playback stream");
           playback_stream.write(&data[0],data.size());
+        }
+      catch(const audio::error& e)
+        {
+          state::Set(state::stopped);
+          logger::log(2,e.what());
+          if(playback_stream.is_open())
+            {
+              logger::log(2,"Closing playback stream");
+              playback_stream.close();
+            }
+        }
+    }
+
+    void sample_rate_setting::output()
+    {
+      if(cancelled())
+        return;
+      logger::log(2,"Setting sample rate to ",sample_rate,", current sample rate is ",playback_stream.get_sample_rate());
+      if(playback_stream.get_sample_rate()==sample_rate)
+        return;
+      try
+        {
+          if(playback_stream.is_open())
+            {
+              logger::log(2,"Playback stream is already open, draining");
+              playback_stream.drain();
+              logger::log(2,"Closing playback stream");
+              playback_stream.close();
+            }
+          playback_stream.set_sample_rate(sample_rate);
         }
       catch(const audio::error& e)
         {

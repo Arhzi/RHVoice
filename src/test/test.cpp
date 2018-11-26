@@ -1,8 +1,8 @@
-/* Copyright (C) 2012, 2013  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2012, 2013, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -37,11 +37,6 @@ namespace
     bool play_speech(const short* samples,std::size_t count);
     void finish();
     bool set_sample_rate(int sample_rate);
-
-    int get_sample_rate() const
-    {
-      return stream.get_sample_rate();
-    }
 
   private:
     audio::playback_stream stream;
@@ -103,6 +98,9 @@ int main(int argc,const char* argv[])
       TCLAP::ValueArg<std::string> outpath_arg("o","output","output file",false,"","path",cmd);
       TCLAP::SwitchArg ssml_switch("s","ssml","Process as ssml",cmd,false);
       TCLAP::ValueArg<std::string> voice_arg("p","profile","voice profile",false,"","spec",cmd);
+      TCLAP::ValueArg<unsigned int> rate_arg("r","rate","speech rate",false,100,"percent",cmd);
+      TCLAP::ValueArg<unsigned int> pitch_arg("t","pitch","speech pitch",false,100,"percent",cmd);
+      TCLAP::ValueArg<unsigned int> volume_arg("v","volume","speech volume",false,100,"percent",cmd);
       cmd.parse(argc,argv);
       std::ifstream f_in;
       if(inpath_arg.getValue()!="-")
@@ -123,6 +121,9 @@ int main(int argc,const char* argv[])
         doc=document::create_from_ssml(eng,text_start,text_end,profile);
       else
         doc=document::create_from_plain_text(eng,text_start,text_end,content_text,profile);
+      doc->speech_settings.relative.rate=rate_arg.getValue()/100.0;
+      doc->speech_settings.relative.pitch=pitch_arg.getValue()/100.0;
+      doc->speech_settings.relative.volume=volume_arg.getValue()/100.0;
       doc->set_owner(player);
       doc->synthesize();
       player.finish();

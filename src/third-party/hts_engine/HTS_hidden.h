@@ -105,7 +105,7 @@ int HTS_feof(HTS_File * fp);
 int HTS_fseek(HTS_File * fp, long offset, int origin);
 
 /* HTS_ftell: wrapper for ftell */
-size_t HTS_ftell(HTS_File * fp);
+long HTS_ftell(HTS_File * fp);
 
 /* HTS_fread_big_endian: fread with byteswap */
 size_t HTS_fread_big_endian(void *buf, size_t size, size_t n, HTS_File * fp);
@@ -184,7 +184,7 @@ size_t HTS_ModelSet_get_fperiod(HTS_ModelSet * ms);
 const char *HTS_ModelSet_get_option(HTS_ModelSet * ms, size_t stream_index);
 
 /* HTS_ModelSet_get_gv_flag: get GV flag */
-HTS_Boolean HTS_ModelSet_get_gv_flag(HTS_ModelSet * ms, const char *string);
+HTS_Boolean HTS_ModelSet_get_gv_flag(HTS_ModelSet * ms, const char *string, const RHVoice_parsed_label_string* parsed);
 
 /* HTS_ModelSet_get_nstate: get number of state */
 size_t HTS_ModelSet_get_nstate(HTS_ModelSet * ms);
@@ -226,21 +226,21 @@ size_t HTS_ModelSet_get_window_max_width(HTS_ModelSet * ms, size_t stream_index)
 HTS_Boolean HTS_ModelSet_use_gv(HTS_ModelSet * ms, size_t stream_index);
 
 /* HTS_ModelSet_get_duration_index: get index of duration tree and PDF */
-void HTS_ModelSet_get_duration_index(HTS_ModelSet * ms, size_t voice_index, const char *string, size_t * tree_index, size_t * pdf_index);
+void HTS_ModelSet_get_duration_index(HTS_ModelSet * ms, size_t voice_index, const char *string, const RHVoice_parsed_label_string* parsed, size_t * tree_index, size_t * pdf_index);
 
 /* HTS_ModelSet_get_duration: get duration using interpolation weight */
-void HTS_ModelSet_get_duration(HTS_ModelSet * ms, const char *string, const double *iw, double *mean, double *vari);
+void HTS_ModelSet_get_duration(HTS_ModelSet * ms, const char *string, const RHVoice_parsed_label_string* parsed, const double *iw, double *mean, double *vari);
 
 /* HTS_ModelSet_get_parameter_index: get index of parameter tree and PDF */
-void HTS_ModelSet_get_parameter_index(HTS_ModelSet * ms, size_t voice_index, size_t stream_index, size_t state_index, const char *string, size_t * tree_index, size_t * pdf_index);
+void HTS_ModelSet_get_parameter_index(HTS_ModelSet * ms, size_t voice_index, size_t stream_index, size_t state_index, const char *string, const RHVoice_parsed_label_string* parsed, size_t * tree_index, size_t * pdf_index);
 
 /* HTS_ModelSet_get_parameter: get parameter using interpolation weight */
-void HTS_ModelSet_get_parameter(HTS_ModelSet * ms, size_t stream_index, size_t state_index, const char *string, const double *const *iw, double *mean, double *vari, double *msd);
+void HTS_ModelSet_get_parameter(HTS_ModelSet * ms, size_t stream_index, size_t state_index, const char *string, const RHVoice_parsed_label_string* parsed, const double *const *iw, double *mean, double *vari, double *msd);
 
-void HTS_ModelSet_get_gv_index(HTS_ModelSet * ms, size_t voice_index, size_t stream_index, const char *string, size_t * tree_index, size_t * pdf_index);
+void HTS_ModelSet_get_gv_index(HTS_ModelSet * ms, size_t voice_index, size_t stream_index, const char *string, const RHVoice_parsed_label_string* parsed, size_t * tree_index, size_t * pdf_index);
 
 /* HTS_ModelSet_get_gv: get GV using interpolation weight */
-void HTS_ModelSet_get_gv(HTS_ModelSet * ms, size_t stream_index, const char *string, const double *const *iw, double *mean, double *vari);
+void HTS_ModelSet_get_gv(HTS_ModelSet * ms, size_t stream_index, const char *string, const RHVoice_parsed_label_string* parsed, const double *const *iw, double *mean, double *vari);
 
 /* HTS_ModelSet_clear: free model set */
 void HTS_ModelSet_clear(HTS_ModelSet * ms);
@@ -261,6 +261,8 @@ size_t HTS_Label_get_size(HTS_Label * label);
 
 /* HTS_Label_get_string: get label string */
 const char *HTS_Label_get_string(HTS_Label * label, size_t index);
+
+const RHVoice_parsed_label_string* HTS_Label_get_parsed(HTS_Label * label, size_t index);
 
 /* HTS_Label_get_start_frame: get start frame */
 double HTS_Label_get_start_frame(HTS_Label * label, size_t index);
@@ -397,7 +399,7 @@ void HTS_PStreamSet_clear(HTS_PStreamSet * pss);
 void HTS_GStreamSet_initialize(HTS_GStreamSet * gss);
 
 /* HTS_GStreamSet_create: generate speech */
-HTS_Boolean HTS_GStreamSet_create(HTS_GStreamSet * gss, HTS_PStreamSet * pss, size_t stage, HTS_Boolean use_log_gain, size_t sampling_rate, size_t fperiod, double alpha, double beta, HTS_Boolean * stop, double volume, HTS_Audio * audio);
+HTS_Boolean HTS_GStreamSet_create(HTS_GStreamSet * gss, HTS_PStreamSet * pss, size_t stage, HTS_Boolean use_log_gain, size_t sampling_rate, size_t fperiod, double alpha, double beta, HTS_Boolean * stop, double volume, HTS_Audio * audio, BPF* bpf);
 
 /* HTS_GStreamSet_get_total_nsamples: get total number of sample */
 size_t HTS_GStreamSet_get_total_nsamples(HTS_GStreamSet * gss);
@@ -447,11 +449,11 @@ void HTS_GStreamSet_clear(HTS_GStreamSet * gss);
 #ifdef HTS_EMBEDDED
 #define GAUSS     FALSE
 #define PADEORDER 4             /* pade order (for MLSA filter) */
-#define IRLENG    384           /* length of impulse response */
+#define IRLENG    64           /* length of impulse response */
 #else
 #define GAUSS     TRUE
 #define PADEORDER 5
-#define IRLENG    576
+#define IRLENG    96
 #endif                          /* HTS_EMBEDDED */
 
 #define CHECK_LSP_STABILITY_MIN 0.25
@@ -477,7 +479,10 @@ typedef struct _HTS_Vocoder {
    double pitch_of_curr_point;  /* used in excitation generation */
    double pitch_counter;        /* used in excitation generation */
    double pitch_inc_per_point;  /* used in excitation generation */
-   double *excite_ring_buff;    /* used in excitation generation */
+   double *pulses_ring_buff;    /* used in excitation generation */
+  double *noise_ring_buff;    /* used in excitation generation */
+   double *pulse_filter;    /* used in excitation generation */
+  double *noise_filter;    /* used in excitation generation */
    size_t excite_buff_size;     /* used in excitation generation */
    size_t excite_buff_index;    /* used in excitation generation */
    unsigned char sw;            /* switch used in random generator */
@@ -500,7 +505,7 @@ typedef struct _HTS_Vocoder {
 void HTS_Vocoder_initialize(HTS_Vocoder * v, size_t m, size_t stage, HTS_Boolean use_log_gain, size_t rate, size_t fperiod);
 
 /* HTS_Vocoder_synthesize: pulse/noise excitation and MLSA/MGLSA filster based waveform synthesis */
-void HTS_Vocoder_synthesize(HTS_Vocoder * v, size_t m, double lf0, double *spectrum, size_t nlpf, double *lpf, double alpha, double beta, double volume, double *rawdata, HTS_Audio * audio);
+void HTS_Vocoder_synthesize(HTS_Vocoder * v, size_t m, double lf0, double *spectrum, double *bap, BPF* bpf, double alpha, double beta, double volume, double *rawdata, HTS_Audio * audio);
 
 /* HTS_Vocoder_clear: clear vocoder */
 void HTS_Vocoder_clear(HTS_Vocoder * v);

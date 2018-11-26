@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -29,7 +29,9 @@ extern "C" {
 
 typedef struct
 {
-  /* This is the only function the caller is *required* to provide. */
+  /* These are the functions the caller is *required* to provide. */
+/* This function will be called first. It will be called again if the sampling rate changes. Return 0 to signal an error. */
+  int (*set_sample_rate)(int sample_rate,void* user_data);
   /* Return 0 to stop synthesis. */
   int (*play_speech)(const short* samples,unsigned int count,void* user_data);
   /* These functions are optional, */

@@ -1,6 +1,5 @@
 name=Aleksandr
 language=Russian
-sample_rate=24k
 gender=male
-format=2
-revision=0
+format=4
+revision=1
