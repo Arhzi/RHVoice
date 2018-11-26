@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -70,6 +70,11 @@ struct RHVoice_message_struct: public client
   {
     return callbacks.play_audio(src.c_str(),user_data);
   }
+
+  bool set_sample_rate(int sr)
+  {
+    return callbacks.set_sample_rate(sr,user_data);
+}
 
   void speak()
   {
@@ -144,7 +149,7 @@ RHVoice_tts_engine_struct::RHVoice_tts_engine_struct(const RHVoice_init_params* 
 {
   if(!init_params)
     throw std::invalid_argument("No initialization parameters provided");
-  if(!init_params->callbacks.play_speech)
+  if(!init_params->callbacks.play_speech||!init_params->callbacks.set_sample_rate)
     throw std::invalid_argument("A mandatory callback function is not provided by the client");
   engine::init_params engine_params;
   if(init_params->data_path)

@@ -1,13 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="rhvoice_settings">Настройки RHVoice</string>
-    <string name="languages_and_voices_title">Языки и голоса</string>
+  <!-- Translated by Olga Yakovleva <yakovleva.o.v@gmail.com> -->
     <string name="default_voice_title">Голос по умолчанию</string>
     <string name="default_voice_dialog_title">Выберите голос</string>
-    <string name="detect_language_title">Автоматическое переключение языка</string>
-    <string name="voice_data">Голосовые данные для RHVoice</string>
-    <string name="voice_data_installed">Голосовые данные установлены</string>
-    <string name="voice_data_not_installed">Голосовые данные не установлены</string>
+    <string name="detect_language_title">Определение языка</string>
+    <string name="detect_language_desc">Автоматическое переключение языка</string>
     <string name="speech_volume">Громкость речи</string>
     <string name="speech_rate">Скорость речи</string>
+    <string name="pseudo_english_title">Английские слова</string>
+    <string name="pseudo_english_desc">Стараться правильно читать английские слова</string>
+    <string name="settings">Настройки</string>
+    <string name="wifi_only_title">Только Wi-Fi</string>
+    <string name="wifi_only_desc">Загружать голоса только по Wi-Fi</string>
+    <string name="speech_quality">Качество речи</string>
+    <string-array name="quality_labels">
+      <item>Наилучшее возможное быстродействие</item>
+      <item>Стандартное качество</item>
+      <item>Наилучшее возможное качество</item>
+    </string-array>
+    <string name="languages">Языки</string>
+    <string name="voice_remove_question">Удалить этот голос?</string>
+    <string name="install">Установить</string>
+    <string name="uninstall">Удалить</string>
 </resources>

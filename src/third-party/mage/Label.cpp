@@ -105,6 +105,9 @@ void MAGE::Label::parseQuery( string q )
 	
 	this->speed = 1.0;
 	
+
+        parsed.parse(this->query.c_str());
+
 	return;
 }
 

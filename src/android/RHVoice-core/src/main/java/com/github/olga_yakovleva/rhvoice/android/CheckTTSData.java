@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -29,45 +29,48 @@ import android.util.Log;
 public final class CheckTTSData extends Activity
 {
     private static final String TAG="RHVoiceCheckDataActivity";
-    private DataManager dm;
-    private ArrayList<String> languageTags=new ArrayList<String>();
+    private ArrayList<String> installedLanguages=new ArrayList<String>();
+    private ArrayList<String> notInstalledLanguages=new ArrayList<String>();
 
     private void checkData()
     {
-        if(BuildConfig.DEBUG)
-            Log.i(TAG,"Checking");
-        DataManager dm=new DataManager(this);
-        dm.checkFiles();
-        dm.checkVoices();
-        List<VoiceInfo> voices=dm.getVoices();
-        for(VoiceInfo voice: voices)
+        installedLanguages.clear();
+        notInstalledLanguages.clear();
+        for(LanguagePack language: Data.getLanguages())
             {
-                String languageTag=voice.getLanguage().getTag3();
-                if(languageTags.contains(languageTag))
-                    continue;
-                languageTags.add(languageTag);
-                if(BuildConfig.DEBUG)
-                    Log.i(TAG,languageTag);
-}
-        Collections.sort(languageTags);
-        if(!dm.isUpToDate())
-            startService(new Intent(this,DataService.class));
+                boolean installed=false;
+                boolean notInstalled=false;
+                for(VoicePack voice: language.getVoices())
+                    {
+                        if(voice.getEnabled(this)&&voice.isUpToDate(this))
+                            installed=true;
+                        else
+                            notInstalled=true;
+                    }
+                String tag=language.getTag();
+                if(installed)
+                    {
+                        if(BuildConfig.DEBUG)
+                            Log.v(TAG,"Installed language: "+tag);
+                        installedLanguages.add(tag);
+                    }
+                if(notInstalled)
+                    notInstalledLanguages.add(tag);
+            }
+        Data.scheduleSync(this);
 }
 
     @Override
     protected void onCreate(Bundle state)
     {
         super.onCreate(state);
+        if(BuildConfig.DEBUG)
+            Log.v(TAG,"checking data");
         checkData();
         Intent resultIntent=new Intent();
-        if(!languageTags.isEmpty())
-            {
-                resultIntent.putStringArrayListExtra(TextToSpeech.Engine.EXTRA_AVAILABLE_VOICES,languageTags);
-                resultIntent.putStringArrayListExtra(TextToSpeech.Engine.EXTRA_UNAVAILABLE_VOICES,new ArrayList<String>());
-                setResult(TextToSpeech.Engine.CHECK_VOICE_DATA_PASS,resultIntent);
-}
-        else
-            setResult(TextToSpeech.Engine.CHECK_VOICE_DATA_FAIL,resultIntent);
+        resultIntent.putStringArrayListExtra(TextToSpeech.Engine.EXTRA_AVAILABLE_VOICES,installedLanguages);
+        resultIntent.putStringArrayListExtra(TextToSpeech.Engine.EXTRA_UNAVAILABLE_VOICES,notInstalledLanguages);
+        setResult(TextToSpeech.Engine.CHECK_VOICE_DATA_PASS,resultIntent);
         finish();
 }
 }

@@ -1,8 +1,8 @@
-/* Copyright (C) 2012  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2012, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -137,6 +137,14 @@ namespace RHVoice
       if(cancelled())
         return false;
       player.enqueue(synth_result_ptr(new speech_chunk(samples,count)));
+      return true;
+    }
+
+    bool speech_synthesizer::set_sample_rate(int sample_rate)
+    {
+      if(cancelled())
+        return true;
+      player.enqueue(synth_result_ptr(new sample_rate_setting(sample_rate)));
       return true;
     }
   }

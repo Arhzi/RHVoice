@@ -1,8 +1,8 @@
-/* Copyright (C) 2012  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2012, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -63,11 +63,6 @@ namespace RHVoice
       return true;
     }
 
-    virtual int get_sample_rate() const
-    {
-      return 24000;
-    }
-
     virtual bool set_sample_rate(int sample_rate)
     {
       return true;
@@ -93,10 +88,24 @@ namespace RHVoice
       return true;
     }
 
+    bool configure(int sr)
+    {
+      if(sr==sample_rate)
+        return true;
+      bool res=set_sample_rate(sr);
+      if(res)
+        sample_rate=sr;
+      return res;
+}
+
   protected:
-    client()
+    client():
+      sample_rate(0)
     {
     }
+
+  private:
+    int sample_rate;
   };
 }
 #endif

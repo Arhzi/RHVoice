@@ -1,5 +1,5 @@
-# -*- mode: Python; indent-tabs-mode: t; tab-width: 4; python-indent: 4 -*-
-# Copyright (C) 2012  Olga Yakovleva <yakovleva.o.v@gmail.com>
+# -*- mode: Python; indent-tabs-mode: t; tab-width: 4 -*-
+# Copyright (C) 2012, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,12 +17,16 @@
 import os
 import os.path
 
-Import("env","libsonic","libhts_engine","libmage")
+Import("env","libsonic","libhts_engine")
+if env["enable_mage"]:
+	Import("libmage")
 local_env=env.Clone()
-local_env["libversion"]="0.0.0"
+local_env["libversion"]="1.1.0"
 local_env["liblevel"]=1
 local_env.Append(CPPDEFINES=("DATA_PATH",r'\"data\"' if local_env["PLATFORM"]=="win32" else local_env.subst(r'\"$datadir/$package_name\"')))
 local_env.Append(CPPDEFINES=("CONFIG_PATH",r'\"config\"' if local_env["PLATFORM"]=="win32" else local_env.subst(r'\"$sysconfdir/$package_name\"')))
+if local_env["enable_mage"]:
+	local_env.Append(CPPDEFINES=("ENABLE_MAGE","1"))
 src=["unicode.cpp",
 	 "io.cpp",
 	 "path.cpp",
@@ -50,14 +54,19 @@ src=["unicode.cpp",
 	 "voice.cpp",
 	 "hts_engine_impl.cpp",
 	 "std_hts_engine_impl.cpp",
-	 "mage_hts_engine_impl.cpp",
 	 "hts_engine_call.cpp",
 	 "hts_label.cpp",
 	 "hts_labeller.cpp",
-	 "speech_processor.cpp"]
-for lib in [libhts_engine,libsonic,libmage]:
+	 "speech_processor.cpp",
+	 "limiter.cpp",
+		 "bpf.cpp",
+		 "question_matcher.cpp"]
+if local_env["enable_mage"]:
+	src.append("mage_hts_engine_impl.cpp")
+for lib in [libhts_engine,libsonic]:
 	src.extend(lib)
-libRHVoice_core=local_env.BuildLibrary("RHVoice_core",src)
+if local_env["enable_mage"]:
+	src.extend(libmage)
+lib=local_env.BuildLibrary(local_env["libcore"],src)
 if env["PLATFORM"]!="win32":
-	local_env.InstallLibrary(libRHVoice_core)
-Export("libRHVoice_core")
+	local_env.InstallLibrary(lib)

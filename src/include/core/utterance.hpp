@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -22,6 +22,7 @@
 #include "exception.hpp"
 #include "smart_ptr.hpp"
 #include "relation.hpp"
+#include "quality_setting.hpp"
 
 namespace RHVoice
 {
@@ -81,14 +82,14 @@ namespace RHVoice
       return *voice_ptr;
     }
 
-    void set_hts_engine_impl(const std::string& name)
+    void set_quality(quality_t q)
     {
-      hts_engine_impl_name=name;
+      quality=q;
     }
 
-    const std::string& get_hts_engine_impl() const
+    quality_t get_quality() const
     {
-      return hts_engine_impl_name;
+      return quality;
     }
 
     double get_absolute_rate() const
@@ -192,7 +193,7 @@ namespace RHVoice
 
     const language& language_ref;
     const voice* voice_ptr;
-    std::string hts_engine_impl_name;
+    quality_t quality;
     relation_map relations;
     double absolute_rate,relative_rate,absolute_pitch,relative_pitch,absolute_volume,relative_volume;
   };

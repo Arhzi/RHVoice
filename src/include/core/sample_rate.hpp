@@ -1,8 +1,8 @@
-/* Copyright (C) 2013  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2013, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -34,7 +34,7 @@ namespace RHVoice
   {
   public:
     sample_rate_property():
-      enum_property<sample_rate_t>("sample_rate",sample_rate_16k)
+      enum_property<sample_rate_t>("sample_rate",sample_rate_24k)
     {
       define("16k",sample_rate_16k);
       define("22k",sample_rate_22k);

@@ -1,8 +1,8 @@
-/* Copyright (C) 2013, 2014, 2016  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2013, 2014, 2016, 2017, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -16,11 +16,35 @@
 
 package com.github.olga_yakovleva.rhvoice.android;
 
-public final class SettingsActivity extends UIActivity
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceFragmentCompat;
+import android.support.v7.preference.PreferenceScreen;
+
+public final class SettingsActivity extends AppCompatActivity implements PreferenceFragmentCompat.OnPreferenceStartScreenCallback
 {
     @Override
-    public void onDataInstalled()
+    public void onCreate(Bundle state)
     {
-        replaceFragment(new SettingsFragment(),"settings_fragment");
+        super.onCreate(state);
+        setContentView(R.layout.frame);
+        if(state==null)
+            {
+                getSupportFragmentManager().beginTransaction().replace(R.id.frame,new SettingsFragment(),SettingsFragment.NAME).commit();
+            }
+    }
+
+    @Override
+    public boolean onPreferenceStartScreen(PreferenceFragmentCompat caller,PreferenceScreen pref)
+    {
+        String key=pref.getKey();
+        if(key==null)
+            throw new IllegalStateException();
+        Bundle args=new Bundle();
+        args.putString(SettingsFragment.ARG_LANGUAGE_KEY,key);
+        SettingsFragment frag=new SettingsFragment();
+        frag.setArguments(args);
+        getSupportFragmentManager().beginTransaction().replace(R.id.frame,frag,key).addToBackStack(null).commit();
+        return true;
 }
 }

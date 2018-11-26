@@ -1,8 +1,8 @@
-# Copyright (C) 2012, 2014  Olga Yakovleva <yakovleva.o.v@gmail.com>
+# Copyright (C) 2012, 2014, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 2.1 of the License, or
 # (at your option) any later version.
 
 # This program is distributed in the hope that it will be useful,
@@ -117,7 +117,10 @@ NZDigit Digit* @-> ... num ,,
 \[Letter | Digit] @-> ... sym ; 
 
 define CamelCaseTokenizer 
-[..] -> word || SmallLetter _ CapitalLetter ; 
+[..] -> word || SmallLetter _ CapitalLetter , CapitalLetter _ CapitalLetter SmallLetter ; 
+
+define CamelCaseFix 
+word -> 0 || CapitalLetter _ CapitalLetter s word ; 
 
 define TagLetterSequences 
 word -> lseq || [.#.|word|num|dig|sym] LetterSequence _ ; 
@@ -140,7 +143,8 @@ sym -> sign || [sym|.#.] PlusOrMinus _ Digit ;
 
 define Tokenizer 
 BasicTokenizer .o. 
-CamelCaseTokenizer .o. 
+CamelCaseTokenizer .o.
+CamelCaseFix .o. 
 TagLetterSequences .o. 
 UntagLargeNumbers .o. 
 TagDecimalSeparators .o. 

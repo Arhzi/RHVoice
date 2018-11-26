@@ -1,8 +1,8 @@
-/* Copyright (C) 2013, 2014  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2013, 2014, 2017, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -16,33 +16,11 @@
 #include <algorithm>
 #include <cmath>
 #include "core/str.hpp"
+#include "core/voice.hpp"
 #include "core/mage_hts_engine_impl.hpp"
 #include "HTS106_engine.h"
+#include "HTS_hidden.h"
 #include "mage.h"
-
-extern "C"
-{
-  void HTS106_Audio_initialize(HTS106_Audio * audio, int sampling_rate, int max_buff_size)
-  {
-  }
-
-  void HTS106_Audio_set_parameter(HTS106_Audio * audio, int sampling_rate, int max_buff_size)
-  {
-  }
-
-  void HTS106_Audio_write(HTS106_Audio * audio, short sample)
-  {
-    static_cast<RHVoice::hts_engine_impl*>(audio->data)->on_new_sample(sample);
-  }
-
-  void HTS106_Audio_flush(HTS106_Audio * audio)
-  {
-  }
-
-  void HTS106_Audio_clear(HTS106_Audio * audio)
-  {
-  }
-}
 
 namespace RHVoice
 {
@@ -65,30 +43,40 @@ namespace RHVoice
       }
   }
 
-  mage_hts_engine_impl::mage_hts_engine_impl(const std::string& voice_path):
-    hts_engine_impl("mage",voice_path)
+  mage_hts_engine_impl::mage_hts_engine_impl(const voice_info& info):
+    hts_engine_impl("mage",info)
   {
+    bpf_init(&bpf);
   }
+
+  mage_hts_engine_impl::~mage_hts_engine_impl()
+  {
+    bpf_clear(&bpf);
+}
 
   hts_engine_impl::pointer mage_hts_engine_impl::do_create() const
   {
-    return pointer(new mage_hts_engine_impl(data_path));
+    return pointer(new mage_hts_engine_impl(info));
   }
 
   void mage_hts_engine_impl::do_initialize()
   {
+    configure_for_sample_rate();
+    std::string bpf_path(path::join(model_path,"bpf.txt"));
+    if(!bpf_load(&bpf,bpf_path.c_str()))
+      throw initialization_error();
     arg_list args;
-    model_file_list dur_files(data_path,"dur");
+    model_file_list dur_files(model_path,"dur");
     append_model_args(args,dur_files,"-td","-md");
-    model_file_list mgc_files(data_path,"mgc",3);
+    model_file_list mgc_files(model_path,"mgc",3);
     append_model_args(args,mgc_files,"-tm","-mm","-dm");
-    model_file_list lf0_files(data_path,"lf0",3);
+    model_file_list lf0_files(model_path,"lf0",3);
     append_model_args(args,lf0_files,"-tf","-mf","-df");
-    model_file_list lpf_files(data_path,"lpf",1);
-    append_model_args(args,lpf_files,"-tl","-ml","-dl");
-    args.push_back(arg("-s",str::to_string(MAGE::defaultSamplingRate)));
-    args.push_back(arg("-p",str::to_string(MAGE::defaultFrameRate)));
-    args.push_back(arg("-a",str::to_string(MAGE::defaultAlpha)));
+    model_file_list ap_files(model_path,"bap",3);
+    append_model_args(args,ap_files,"-tl","-ml","-dl");
+    args.push_back(arg("-s",str::to_string(sample_rate.get())));
+    args.push_back(arg("-p",str::to_string(frame_shift)));
+    args.push_back(arg("-a",str::to_string(alpha)));
     args.push_back(arg("-b",str::to_string(beta.get())));
     args.push_back(arg("-u","0.5"));
     std::vector<char*> c_args;
@@ -100,7 +88,7 @@ namespace RHVoice
         c_args.push_back(const_cast<char*>(it->second.c_str()));
       }
     mage.reset(new MAGE::Mage("default",c_args.size(),&c_args[0]));
-    vocoder.reset(new HTS106_Vocoder);
+    vocoder.reset(new HTS_Vocoder);
   }
 
   void mage_hts_engine_impl::do_synthesize()
@@ -124,7 +112,7 @@ namespace RHVoice
   void mage_hts_engine_impl::do_reset()
   {
     mage->reset();
-    HTS106_Vocoder_clear(vocoder.get());
+    HTS_Vocoder_clear(vocoder.get());
     MAGE::FrameQueue* fq=mage->getFrameQueue();
     mage->setFrameQueue(0);
     delete fq;
@@ -150,7 +138,7 @@ namespace RHVoice
         MAGE::FrameQueue* fq=new MAGE::FrameQueue(MAGE::maxFrameQueueLen);
         mage->setFrameQueue(fq);
       }
-    HTS106_Vocoder_initialize(vocoder.get(),MAGE::nOfMGCs-1,0,1,MAGE::defaultSamplingRate,MAGE::defaultFrameRate);
+    HTS_Vocoder_initialize(vocoder.get(),mgc_order,0,1,sample_rate.get(),frame_shift);
   }
 
   void mage_hts_engine_impl::generate_parameters(hts_label& lab)
@@ -173,14 +161,18 @@ namespace RHVoice
   void mage_hts_engine_impl::generate_samples(hts_label& lab)
   {
     double pitch=lab.get_pitch();
-    double mgc[MAGE::nOfMGCs];
-    double* lpf=0;
-    int nlpf=(MAGE::nOfLPFs-1)/2;
     MAGE::FrameQueue* fq=mage->getFrameQueue();
     while(!(output->is_stopped()||fq->isEmpty()))
       {
         MAGE::Frame* f=fq->get();
-        std::copy(f->streams[MAGE::mgcStreamIndex],f->streams[MAGE::mgcStreamIndex]+MAGE::nOfMGCs,mgc);
+        std::copy(f->streams[MAGE::mgcStreamIndex],f->streams[MAGE::mgcStreamIndex]+mgc.size(),mgc.begin());
+  std::copy(f->streams[MAGE::bapStreamIndex],f->streams[MAGE::bapStreamIndex]+ap.size(),ap.begin());
+  for(int i=0;i<ap.size();++i)
+    {
+      if(ap[i]>0)
+        ap[i]=0;
+      ap[i]=std::pow(10.0,ap[i]/10.0);
+    }
         double lf0=(f->voiced)?(f->streams[MAGE::lf0StreamIndex][0]):LZERO;
         if(f->voiced&&(pitch!=1))
           {
@@ -189,11 +181,46 @@ namespace RHVoice
               f0=20;
             lf0=std::log(f0);
           }
-        lpf=f->streams[MAGE::lpfStreamIndex];
         fq->pop();
-        HTS106_Audio audio;
-        audio.data=this;
-        HTS106_Vocoder_synthesize(vocoder.get(),MAGE::nOfMGCs-1,lf0,mgc,nlpf,lpf,MAGE::defaultAlpha,beta,1,0,&audio);
+        HTS_Vocoder_synthesize(vocoder.get(),mgc_order,lf0,&(mgc[0]),&(ap[0]),&bpf,alpha,beta,1,&(speech[0]),0);
+        for(int i=0;i<frame_shift;++i)
+          {
+            speech[i]/=32768.0;
+          }
+        output->process(&(speech[0]),frame_shift);
       }
   }
+
+  bool mage_hts_engine_impl::supports_quality(quality_t q) const
+  {
+    if(q>quality_std)
+      return false;
+    if(quality<=quality_none)
+      return true;
+    return (q==quality);
+  }
+
+  void mage_hts_engine_impl::configure_for_sample_rate()
+  {
+    sample_rate=get_sample_rate_for_quality(quality);
+    switch(sample_rate.get())
+      {
+      case sample_rate_16k:
+        frame_shift=80;
+        alpha=0.42;
+        mgc_order=24;
+        bap_order=4;
+        break;
+      default:
+        frame_shift=120;
+        alpha=0.466;
+        mgc_order=30;
+        bap_order=(info.get_format()==3)?11:6;
+        break;
+}
+    mgc.resize(mgc_order+1,0);
+    ap.resize(bap_order+1,0);
+    speech.resize(frame_shift,0);
+}
+
 }

@@ -1,6 +1,5 @@
 name=Elena
 language=Russian
-sample_rate=24k
 gender=female
-format=2
-revision=0
+format=4
+revision=1

@@ -1,8 +1,8 @@
-/* Copyright (C) 2013, 2014  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2013, 2014, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -23,18 +23,25 @@
 #include "sample_rate.hpp"
 #include "hts_input.hpp"
 #include "speech_processing_chain.hpp"
+#include "quality_setting.hpp"
 
 struct _HTS_Audio;
 extern "C" void HTS_Audio_write(_HTS_Audio * audio, short sample);
+#ifdef ENABLE_MAGE
 struct _HTS106_Audio;
 extern "C" void HTS106_Audio_write(_HTS106_Audio * audio, short sample);
+#endif
 
 namespace RHVoice
 {
+  class voice_info;
+
   class hts_engine_impl
   {
     friend void ::HTS_Audio_write(_HTS_Audio * audio, short sample);
+#ifdef ENABLE_MAGE
     friend void ::HTS106_Audio_write(_HTS106_Audio * audio, short sample);
+    #endif
   public:
     typedef smart_ptr<hts_engine_impl> pointer;
 
@@ -74,7 +81,7 @@ namespace RHVoice
       return name;
     }
 
-    pointer create() const;
+    pointer create(quality_t quality) const;
 
     void set_input(hts_input& input_)
     {
@@ -99,13 +106,24 @@ namespace RHVoice
       rate=value;
     }
 
-  protected:
-    explicit hts_engine_impl(const std::string& name,const std::string& voice_path);
+    double get_gain() const
+    {
+      return gain;
+}
 
+    virtual bool supports_quality(quality_t q) const=0;
+
+  protected:
+    explicit hts_engine_impl(const std::string& name,const voice_info& info_);
+    virtual sample_rate_t get_sample_rate_for_quality(quality_t q) const;
+
+    const voice_info& info;
     std::string data_path;
+    std::string model_path;
     sample_rate_property sample_rate;
     numeric_property<double> beta;
     numeric_property<double> gain;
+    quality_t quality;
 
     hts_input* input;
     speech_processing_chain* output;
@@ -119,6 +137,7 @@ namespace RHVoice
 
     void load_configs();
 
+    void set_quality(quality_t q);
     virtual pointer do_create() const=0;
     virtual void do_initialize()=0;
     virtual void do_synthesize()=0;

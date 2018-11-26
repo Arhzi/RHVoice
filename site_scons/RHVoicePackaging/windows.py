@@ -1,6 +1,6 @@
-# -*- coding: utf-8; mode: Python; indent-tabs-mode: t; tab-width: 4; python-indent: 4 -*-
+# -*- coding: utf-8; mode: Python; indent-tabs-mode: t -*-
 
-# Copyright (C) 2013, 2014  Olga Yakovleva <yakovleva.o.v@gmail.com>
+# Copyright (C) 2013, 2014, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 
 import os.path
 from collections import OrderedDict
-from common import *
+from .common import *
 
 class app_packager(packager):
 	def __init__(self,name,outdir,env,display_name,version,data_package=False):
@@ -32,7 +32,7 @@ class app_packager(packager):
 		self.uninstaller="uninstall-{}.exe".format(name)
 		self.uninst_reg_key=r'Software\Microsoft\Windows\CurrentVersion\Uninstall\{}'.format(name)
 		uninst_info=self.get_uninstall_info()
-		for n,v in uninst_info.iteritems():
+		for n,v in uninst_info.items():
 			self.add_reg_value("HKLM",self.uninst_reg_key,n,v)
 
 	def add_reg_value(self,root_key,key,name,value,x64=False):

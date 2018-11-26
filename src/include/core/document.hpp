@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -31,7 +31,7 @@
 #include "ssml.hpp"
 #include "client.hpp"
 #include "params.hpp"
-#include "hts_engine_setting.hpp"
+#include "quality_setting.hpp"
 
 #ifndef RHVOICE_DOCUMENT_HPP
 #define RHVOICE_DOCUMENT_HPP
@@ -282,7 +282,7 @@ namespace RHVoice
   public:
     speech_params speech_settings;
     verbosity_params verbosity_settings;
-    hts_engine_setting hts_engine;
+    quality_setting quality;
 
     explicit document(const smart_ptr<engine>& engine_ptr_,const voice_profile& profile_=voice_profile()):
       engine_ptr(engine_ptr_),
@@ -291,7 +291,7 @@ namespace RHVoice
       current_sentence(sentences.end())
     {
       verbosity_settings.default_to(engine_ptr->verbosity_settings);
-      hts_engine.default_to(engine_ptr->hts_engine);
+      quality.default_to(engine_ptr->quality);
     }
 
     const engine& get_engine() const

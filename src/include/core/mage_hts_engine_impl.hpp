@@ -1,8 +1,8 @@
-/* Copyright (C) 2013  Olga Yakovleva <yakovleva.o.v@gmail.com> */
+/* Copyright (C) 2013, 2017, 2018  Olga Yakovleva <yakovleva.o.v@gmail.com> */
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -18,21 +18,30 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 #include "hts_engine_impl.hpp"
+#include "bpf.h"
+#include "quality_setting.hpp"
 
 namespace MAGE
 {
   class Mage;
 }
 
+struct _HTS_Vocoder;
 struct _HTS106_Vocoder;
 
 namespace RHVoice
 {
+  class voice_info;
+
   class mage_hts_engine_impl: public hts_engine_impl
   {
   public:
-    explicit mage_hts_engine_impl(const std::string& voice_path);
+    explicit mage_hts_engine_impl(const voice_info& info);
+    ~mage_hts_engine_impl();
+
+    virtual bool supports_quality(quality_t q) const;
 
   private:
     class model_file_list
@@ -64,9 +73,16 @@ namespace RHVoice
     void generate_parameters(hts_label& lab);
     void generate_samples(hts_label& lab);
     void append_model_args(arg_list& args,const model_file_list& files,const std::string& tree_arg_name,const std::string& pdf_arg_name,const std::string& win_arg_name="") const;
+    void configure_for_sample_rate();
 
     std::auto_ptr<MAGE::Mage> mage;
-    std::auto_ptr<_HTS106_Vocoder> vocoder;
+    std::auto_ptr<_HTS_Vocoder> vocoder;
+    int frame_shift;
+    double alpha;
+    int mgc_order;
+    int bap_order;
+    BPF bpf;
+    std::vector<double> mgc,ap,speech;
   };
 }
 #endif

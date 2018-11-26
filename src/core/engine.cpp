@@ -2,7 +2,7 @@
 
 /* This program is free software: you can redistribute it and/or modify */
 /* it under the terms of the GNU Lesser General Public License as published by */
-/* the Free Software Foundation, either version 3 of the License, or */
+/* the Free Software Foundation, either version 2.1 of the License, or */
 /* (at your option) any later version. */
 
 /* This program is distributed in the hope that it will be useful, */
@@ -74,7 +74,7 @@ namespace RHVoice
     text_settings.register_self(cfg);
     verbosity_settings.register_self(cfg);
     cfg.register_setting(prefer_primary_language);
-    cfg.register_setting(hts_engine);
+    cfg.register_setting(quality);
     languages.register_settings(cfg);
     voices.register_settings(cfg);
     for(language_list::iterator it(languages.begin());it!=languages.end();++it)
